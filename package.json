@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon ./index.js",
+    "start": "node --max-old-space-size=5000 ./index.js",
+    "watch": "nodemon --max-old-space-size=5000 ./index.js",
     "test": "npm run lint && npm run coverage",
     "lint": "node ./node_modules/.bin/eslint src",
     "coverage": "istanbul cover jasmine JASMINE_CONFIG_PATH=jasmine.json"

@@ -7,7 +7,7 @@ describe('/scrape-product-url', () => {
   beforeEach(() => {
     _req = {
       query: {
-        url: 'http://'
+        url: encodeURIComponent('http://foo.com')
       }
     };
     urlScraper = mock.reRequire('../utils/url-scraper');
