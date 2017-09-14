@@ -1,16 +1,6 @@
 const mock = require('mock-require');
 
 describe('url scraper util', () => {
-  let _scraperConfig = {
-    ignoredResources: [],
-    nameSelector: '.foo-product-name',
-    priceSelector: '.foo-price',
-    thumbnailSelector: '.foo-thumbnail'
-  };
-  let _thumbnailSrc = 'thumbnail.jpg';
-  let _pipelineHandlerCallback;
-  let _fetchResponse = {};
-
   function MockBrowser() {
     return {
       pipeline: {
@@ -26,6 +16,16 @@ describe('url scraper util', () => {
     };
   }
 
+  let _scraperConfig = {
+    ignoredResources: [],
+    nameSelector: '.foo-product-name',
+    priceSelector: '.foo-price',
+    thumbnailSelector: '.foo-thumbnail'
+  };
+  let _thumbnailSrc = 'thumbnail.jpg';
+  let _pipelineHandlerCallback;
+  let _fetchResponse = {};
+
   beforeEach(() => {
     _fetchResponse = {};
     _pipelineHandlerCallback = () => {};
@@ -37,13 +37,11 @@ describe('url scraper util', () => {
         _fetchResponse.response = response;
       }
     });
-
     mock('./config', {
       getConfig() {
         return _scraperConfig;
       }
     });
-
     mock('cheerio', {
       load() {
         return (selector) => {

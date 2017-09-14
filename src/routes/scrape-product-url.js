@@ -6,7 +6,7 @@ const { URLScraperNotFoundError } = require('../shared/errors');
 
 const scrapeProductUrl = [
   (req, res, next) => {
-    const url = req.query.url;
+    const url = decodeURIComponent(req.query.url);
     const isUrl = (/^https?:\/\//.test(url));
 
     if (isUrl) {
