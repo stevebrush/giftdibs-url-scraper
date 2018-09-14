@@ -5,14 +5,19 @@ const cors = require('cors');
 
 getEnvironment();
 
+const db = require('./database');
+db.connect();
+
 const app = express();
 app.set('port', process.env.PORT);
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
 app.use(cors({
-  origin: 'http://localhost:4200',
-  methods: 'GET,OPTIONS'
+  methods: 'POST,GET',
+  origin: process.env.ALLOW_ORIGIN
 }));
+app.options('*', cors());
 
 app.use('/v1', require('./routes'));
 

@@ -1,11 +1,11 @@
 {
   "name": "giftdibs-url-scraper",
   "version": "0.1.0",
-  "description": "",
+  "description": "URL scraper utility for GiftDibs clients.",
   "main": "index.js",
   "scripts": {
     "start": "node --max-old-space-size=5000 ./index.js",
-    "watch": "nodemon --max-old-space-size=5000 ./index.js",
+    "start:watch": "nodemon --max-old-space-size=5000 ./index.js",
     "test": "npm run lint && npm run coverage",
     "lint": "node ./node_modules/.bin/eslint src",
     "coverage": "istanbul cover jasmine JASMINE_CONFIG_PATH=jasmine.json"
@@ -30,6 +30,7 @@
     "dotenv": "4.0.0",
     "express": "4.16.2",
     "glob": "7.1.2",
+    "mongoose": "5.1.7",
     "winston": "2.4.0",
     "zombie": "5.0.7"
   },

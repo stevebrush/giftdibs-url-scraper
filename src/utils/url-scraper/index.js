@@ -1,7 +1,7 @@
 const { createBrowser } = require('./browser');
 const { createScraper } = require('./scraper');
 
-const getProductDetails = (urls, utilOptions = {}) => {
+const getProductDetails = (urls) => {
   const browser = createBrowser();
 
   return new Promise((resolve) => {
@@ -11,8 +11,7 @@ const getProductDetails = (urls, utilOptions = {}) => {
     const init = (url) => {
       const scraper = createScraper(browser);
 
-      scraper
-        .scrapeUrl(url)
+      scraper.scrapeUrl(url)
         .then((details) => {
           allProductDetails.push(details);
 
@@ -28,6 +27,14 @@ const getProductDetails = (urls, utilOptions = {}) => {
   });
 };
 
+function getImages(url) {
+  const browser = createBrowser();
+  const scraper = createScraper(browser);
+
+  return scraper.getImages(url);
+}
+
 module.exports = {
+  getImages,
   getProductDetails
 };

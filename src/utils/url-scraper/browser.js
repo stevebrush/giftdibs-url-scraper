@@ -3,16 +3,23 @@ const createBrowser = () => {
   const Fetch = require('zombie/lib/fetch');
   const { getActiveScraper } = require('./scraper');
 
-  const browser = new Browser();
-
-  browser.silent = true;
-  browser.waitDuration = '30s';
+  const browser = new Browser({
+    runScripts: true,
+    silent: true,
+    waitDuration: '30s'
+  });
 
   // Ignore certain resource requests.
   browser.pipeline.addHandler((browser, request) => {
     let doAbort = false;
 
-    const ignoredResources = getActiveScraper().productConfig.ignoredResources;
+    const productConfig = getActiveScraper().productConfig;
+
+    if (!productConfig) {
+      return Promise.resolve();
+    }
+
+    const ignoredResources = productConfig.ignoredResources;
 
     ignoredResources.forEach((domain) => {
       if (request.url.includes(domain)) {
@@ -21,8 +28,13 @@ const createBrowser = () => {
     });
 
     if (doAbort) {
+      console.log('IGNORE:', request.url);
       return new Fetch.Response('', { status: 200 });
+    } else {
+      console.log('ALLOW:', request.url);
     }
+
+    return Promise.resolve();
   });
 
   return browser;

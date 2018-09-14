@@ -4,6 +4,7 @@ function URLScraperNotFoundError() {
   this.code = 1;
   this.status = 400;
 }
+
 URLScraperNotFoundError.prototype = Error.prototype;
 
 module.exports = {
