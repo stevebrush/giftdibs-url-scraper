@@ -20,6 +20,11 @@ async function launchUrl(url, callback, args) {
 
   const page = await browser.newPage();
 
+  // Uncomment for debugging.
+  // page.on('console', (msg) => {
+  //   console.log('PAGE LOG:', msg.text());
+  // });
+
   await page.setRequestInterception(true);
 
   page.on('request', (request) => {
@@ -33,7 +38,7 @@ async function launchUrl(url, callback, args) {
       });
 
       if (found) {
-        console.log('IGNORE:', requestUrl);
+        // console.log('IGNORE:', requestUrl);
         doAbort = true;
       }
     }
@@ -45,28 +50,11 @@ async function launchUrl(url, callback, args) {
     }
   });
 
-  // Uncomment for debugging.
-  // page.on('console', (msg) => {
-  //   console.log('PAGE LOG:', msg.text());
-  // });
-
   await page.goto(url);
 
   const result = await page.evaluate(callback, args);
 
   await browser.close();
-
-  return result;
-}
-
-async function getProductDetails(url, config) {
-  const result = await launchUrl(
-    url,
-    scrapeUrlDomCallback, // This method is executed in the DOM.
-    config
-  );
-
-  result.url = url;
 
   return result;
 }
@@ -80,7 +68,8 @@ async function scrapeProductUrl(url, config) {
   let product = products[0];
 
   if (!product) {
-    const details = await getProductDetails(url, config);
+    const details = await launchUrl(url, scrapeUrlDomCallback, config);
+    details.url = url;
 
     if (details.images.length > 0 || details.price > 0) {
       const doc = new Product(details);
@@ -88,12 +77,7 @@ async function scrapeProductUrl(url, config) {
     }
   }
 
-  return {
-    images: product.images,
-    name: product.name,
-    price: product.price,
-    url
-  };
+  return product;
 }
 
 router.route('/products').get((req, res, next) => {

@@ -1,3 +1,5 @@
+/* eslint-env browser */
+// This method is executed in the DOM.
 module.exports = (config) => {
   const isUrlRegExp = /^https?:\/\//;
 
@@ -57,9 +59,37 @@ module.exports = (config) => {
     images = images.slice(0, 24);
   }
 
-  return {
-    images,
-    name,
-    price
-  };
+  // https://stackoverflow.com/a/20285053/6178885
+  function toDataUrl(url) {
+    return new Promise((resolve) => {
+      var xhr = new XMLHttpRequest();
+      xhr.onload = function () {
+        var reader = new FileReader();
+        reader.onloadend = function () {
+          resolve(reader.result);
+        }
+        reader.readAsDataURL(xhr.response);
+      };
+      xhr.open('GET', url);
+      xhr.responseType = 'blob';
+      xhr.send();
+    });
+  }
+
+  const promises = images.map((image) => {
+    if (image.url.indexOf('data:') === 0) {
+      return image.url;
+    }
+
+    return toDataUrl(image.url);
+  });
+
+  return Promise.all(promises)
+    .then((result) => {
+      return {
+        images: result.map((r) => ({ data: r })),
+        name,
+        price
+      };
+    });
 };
