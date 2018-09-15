@@ -3,7 +3,7 @@ const glob = require('glob');
 const defaultConfig = {
   nameSelector: 'title',
   priceSelector: null,
-  thumbnailSelector: null,
+  imagesSelector: 'img',
   ignoredResources: []
 };
 

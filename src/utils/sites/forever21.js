@@ -6,7 +6,7 @@ const getConfig = (url) => {
   return {
     nameSelector: '#h1Title',
     priceSelector: '#ItemPrice',
-    thumbnailSelector: '#pic_container .product_image',
+    imagesSelector: 'img.product_image',
     ignoredResources: [
       'bounceexchange.com',
       'www.res-x.com',

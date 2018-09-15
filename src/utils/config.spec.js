@@ -5,7 +5,7 @@ describe('url scraper config util', () => {
     return (
       config.nameSelector !== undefined &&
       config.priceSelector !== undefined &&
-      config.thumbnailSelector !== undefined &&
+      config.imagesSelector !== undefined &&
       typeof config.ignoredResources.push === 'function'
     );
   };
@@ -29,7 +29,7 @@ describe('url scraper config util', () => {
     const config = getConfig('foobarbaz.???');
     expect(config.nameSelector).toEqual('title');
     expect(config.priceSelector).toEqual(null);
-    expect(config.thumbnailSelector).toEqual(null);
+    expect(config.imagesSelector).toEqual(null);
     expect(config.ignoredResources).toEqual([]);
   });
 
@@ -52,7 +52,7 @@ describe('url scraper config util', () => {
     const config = getConfig('foobarbaz.???');
     expect(config.nameSelector).toEqual('custom-name');
     expect(config.priceSelector).toEqual(null);
-    expect(config.thumbnailSelector).toEqual(null);
+    expect(config.imagesSelector).toEqual(null);
     expect(config.ignoredResources).toEqual([]);
   });
 });

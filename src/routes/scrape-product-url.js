@@ -1,171 +1,120 @@
 const express = require('express');
+const puppeteer = require('puppeteer');
 
-// const authenticateJwt = require('../middleware/authenticate-jwt');
-const urlScraper = require('../utils/url-scraper');
-const { URLScraperNotFoundError } = require('../shared/errors');
 const { Product } = require('../database/models/product');
+const { URLScraperNotFoundError } = require('../shared/errors');
 
-function scrapeProductUrl(req, res, next) {
-  const url = decodeURIComponent(req.query.url);
-  const isUrl = (/^https?:\/\//.test(url));
-
-  if (!isUrl) {
-    next(new URLScraperNotFoundError());
-    return;
-  }
-
-  Product.find({ url })
-    .limit(1)
-    .select('imageUrl name price url')
-    .lean()
-    .then((products) => {
-      const product = products[0];
-
-      if (!product) {
-        return urlScraper.getProductDetails([ url ])
-          .then((details) => {
-            const doc = new Product(details[0]);
-            return doc.save();
-          });
-      }
-
-      return product;
-    })
-    .then((doc) => {
-      res.json({
-        product: {
-          imageUrl: doc.imageUrl,
-          name: doc.name,
-          price: doc.price,
-          url: doc.url
-        }
-      });
-    })
-    .catch(next);
-
-  // const url = decodeURIComponent(req.query.url);
-  // const isUrl = (/^https?:\/\//.test(url));
-
-  // if (isUrl) {
-  //   urlScraper.getProductDetails([ url ])
-  //     .then((products) => res.json({
-  //       product: products[0]
-  //     }))
-  //     .catch(next);
-  // } else {
-  //   next(new URLScraperNotFoundError());
-  // }
-}
-
-function scrapeProductUrls(req, res, next) {
-  const urls = JSON.parse(req.body.urls);
-
-  const foundBadUrl = urls.find((url) => {
-    return !(/^https?:\/\//.test(url));
-  });
-
-  if (foundBadUrl) {
-    next(new URLScraperNotFoundError());
-    return;
-  }
-
-  let result = [];
-  let urlsRemaining = urls;
-
-  Product
-    .find({
-      url: { $in: urls }
-    })
-    .select('imageUrl name price url')
-    .lean()
-    .then((products) => {
-      products.forEach((product) => {
-        const index = urlsRemaining.indexOf(product.url);
-        if (index > -1) {
-          urlsRemaining.splice(index, 1);
-        }
-      });
-
-      result = products;
-
-      if (urlsRemaining.length > 0) {
-        return urlScraper.getProductDetails(urlsRemaining)
-          .then((details) => {
-            const promises = details.map((detail) => {
-              const doc = new Product(detail);
-              result.push({
-                url: doc.url,
-                name: doc.name,
-                price: doc.price,
-                imageUrl: doc.imageUrl
-              });
-              return doc.save();
-            });
-
-            return Promise.all(promises)
-              .then(() => result);
-          });
-      }
-
-      return result;
-    })
-    .then((products) => {
-      res.json({
-        products
-      });
-    })
-    .catch(next);
-
-  // urlScraper.getProductDetails(urls)
-  //   .then((products) => {
-  //     const promises = products.map((product) => {
-  //       const doc = new Product(product);
-  //       return doc.save();
-  //     });
-
-  //     return Promise.all(promises)
-  //       .then(() => products);
-  //   })
-  //   .then((products) => {
-  //     res.json({
-  //       products
-  //     });
-  //   })
-  //   .catch(next);
-}
-
-function scrapeImages(req, res, next) {
-  const url = decodeURIComponent(req.query.url);
-  const isUrl = (/^https?:\/\//.test(url));
-
-  console.log('url?', url);
-
-  if (!isUrl) {
-    next(new URLScraperNotFoundError());
-    return;
-  }
-
-  urlScraper.getImages(url)
-    .then((images) => {
-      res.json({
-        images
-      });
-    })
-    .catch(next);
-}
+const scrapeUrlDomCallback = require('./scrape-product-dom-callback');
 
 const router = express.Router();
+const isUrlRegExp = /^https?:\/\//;
 
-router.route('/products')
-  .get(scrapeProductUrl)
-  .post(scrapeProductUrls);
+async function launchUrl(url, callback, args) {
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: [
+      '--ignore-certificate-errors',
+      '--no-sandbox'
+    ]
+  });
 
-router.route('/images')
-  .get(scrapeImages);
+  const page = await browser.newPage();
+
+  await page.setRequestInterception(true);
+
+  page.on('request', (request) => {
+    const requestUrl = request.url();
+    let doAbort = false;
+
+    // Ignore loading images.
+    if (args.ignoredResources) {
+      const found = args.ignoredResources.find((resource) => {
+        return (requestUrl.indexOf(resource) > -1);
+      });
+
+      if (found) {
+        console.log('IGNORE:', requestUrl);
+        doAbort = true;
+      }
+    }
+
+    if (doAbort) {
+      request.abort();
+    } else {
+      request.continue();
+    }
+  });
+
+  // Uncomment for debugging.
+  // page.on('console', (msg) => {
+  //   console.log('PAGE LOG:', msg.text());
+  // });
+
+  await page.goto(url);
+
+  const result = await page.evaluate(callback, args);
+
+  await browser.close();
+
+  return result;
+}
+
+async function getProductDetails(url, config) {
+  const result = await launchUrl(
+    url,
+    scrapeUrlDomCallback, // This method is executed in the DOM.
+    config
+  );
+
+  result.url = url;
+
+  return result;
+}
+
+async function scrapeProductUrl(url, config) {
+  const products = await Product.find({ url })
+    .limit(1)
+    .select('images name price url')
+    .lean();
+
+  let product = products[0];
+
+  if (!product) {
+    const details = await getProductDetails(url, config);
+
+    if (details.images.length > 0 || details.price > 0) {
+      const doc = new Product(details);
+      product = await doc.save();
+    }
+  }
+
+  return {
+    images: product.images,
+    name: product.name,
+    price: product.price,
+    url
+  };
+}
+
+router.route('/products').get((req, res, next) => {
+  const url = decodeURIComponent(req.query.url);
+  const isUrl = isUrlRegExp.test(url);
+
+  if (!isUrl) {
+    next(new URLScraperNotFoundError());
+    return;
+  }
+
+  const scraperConfigUtil = require('../utils/config');
+  const productConfig = scraperConfigUtil.getConfig(url);
+
+  scrapeProductUrl(url, productConfig)
+    .then((product) => {
+      res.json({ product });
+    })
+    .catch(next);
+});
 
 module.exports = {
-  middleware: {
-    scrapeProductUrl
-  },
   router
 };
