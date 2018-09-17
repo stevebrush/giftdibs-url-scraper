@@ -10,7 +10,7 @@ const productSchema = new Schema({
   url: String,
   createdAt: {
     type: Date,
-    expires: 86400,
+    expires: 86400, // 24 hours
     default: Date.now
   }
 }, {

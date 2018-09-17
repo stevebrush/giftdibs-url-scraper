@@ -1,6 +1,7 @@
 /* eslint-env browser */
+
 // This method is executed in the DOM.
-module.exports = (config) => {
+module.exports = function (config) {
   const isUrlRegExp = /^https?:\/\//;
 
   let nameElement;
@@ -59,6 +60,7 @@ module.exports = (config) => {
     images = images.slice(0, 24);
   }
 
+  // Convert URls to data URLS.
   // https://stackoverflow.com/a/20285053/6178885
   function toDataUrl(url) {
     return new Promise((resolve) => {
@@ -77,7 +79,7 @@ module.exports = (config) => {
   }
 
   const promises = images.map((image) => {
-    if (image.url.indexOf('data:') === 0) {
+    if (image.url.indexOf('data:image') === 0) {
       return image.url;
     }
 

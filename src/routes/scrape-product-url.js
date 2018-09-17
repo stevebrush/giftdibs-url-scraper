@@ -20,10 +20,11 @@ async function launchUrl(url, callback, args) {
 
   const page = await browser.newPage();
 
-  // Uncomment for debugging.
-  // page.on('console', (msg) => {
-  //   console.log('PAGE LOG:', msg.text());
-  // });
+  if (process.env.NODE_ENV === 'development') {
+    page.on('console', (message) => {
+      console.log('PAGE LOG:', message.text());
+    });
+  }
 
   await page.setRequestInterception(true);
 
@@ -38,7 +39,10 @@ async function launchUrl(url, callback, args) {
       });
 
       if (found) {
-        // console.log('IGNORE:', requestUrl);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('IGNORE RESOURCE:', requestUrl);
+        }
+
         doAbort = true;
       }
     }
