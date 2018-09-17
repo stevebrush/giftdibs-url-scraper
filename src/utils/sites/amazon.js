@@ -5,7 +5,13 @@ const getConfig = (url) => {
 
   return {
     nameSelector: '#productTitle',
-    priceSelector: '#buybox .offer-price, #newPrice .buyingPrice, #priceblock_ourprice, #priceblock_dealprice',
+    priceSelector: [
+      '#buybox .offer-price',
+      '#newPrice .buyingPrice',
+      '#priceblock_ourprice',
+      '#priceblock_dealprice',
+      '#price_inside_buybox'
+    ].join(', '),
     imagesSelector: '#landingImage',
     ignoredResources: [
       'https://completion.amazon.com',
