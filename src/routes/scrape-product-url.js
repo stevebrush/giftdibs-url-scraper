@@ -14,7 +14,8 @@ async function launchUrl(url, callback, args) {
     headless: true,
     args: [
       '--ignore-certificate-errors',
-      '--no-sandbox'
+      '--no-sandbox',
+      '--disable-setuid-sandbox'
     ]
   });
 
