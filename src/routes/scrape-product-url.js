@@ -11,6 +11,7 @@ const isUrlRegExp = /^https?:\/\//;
 
 async function launchUrl(url, callback, args) {
   const browser = await puppeteer.launch({
+    headless: true,
     args: [
       '--ignore-certificate-errors',
       '--no-sandbox',
