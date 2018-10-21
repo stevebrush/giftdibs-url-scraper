@@ -11,11 +11,17 @@ const isUrlRegExp = /^https?:\/\//;
 
 async function launchUrl(url, callback, args) {
   const browser = await puppeteer.launch({
+    // See: https://github.com/GoogleChrome/puppeteer/issues/2511#issuecomment-387811302
+    ignoreDefaultArgs: true,
+
     headless: true,
     args: [
       '--ignore-certificate-errors',
       '--no-sandbox',
-      '--disable-setuid-sandbox'
+      '--disable-setuid-sandbox',
+      '--disable-web-security',
+      '--disable-gpu',
+      '--hide-scrollbars'
     ]
   });
 
@@ -40,15 +46,14 @@ async function launchUrl(url, callback, args) {
       });
 
       if (found) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('IGNORE RESOURCE:', requestUrl);
-        }
-
         doAbort = true;
       }
     }
 
     if (doAbort) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('IGNORE RESOURCE:', requestUrl);
+      }
       request.abort();
     } else {
       request.continue();

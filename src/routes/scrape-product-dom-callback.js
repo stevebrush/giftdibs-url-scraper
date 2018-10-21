@@ -31,7 +31,11 @@ module.exports = function (config) {
   }
 
   // Fall back to all images if the special selector fails.
-  let imageElements = document.querySelectorAll(config.imagesSelector);
+  let imageElements;
+  if (config.imagesSelector) {
+    imageElements = document.querySelectorAll(config.imagesSelector);
+  }
+
   if (imageElements.length === 0) {
     imageElements = document.querySelectorAll('img');
   }
