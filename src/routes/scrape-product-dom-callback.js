@@ -53,7 +53,11 @@ module.exports = function (config) {
           (rect.width >= 200 && rect.height >= 50) ||
           (rect.height >= 200 && rect.width >= 50)
         ) {
-          images.push({ url: src });
+          images.push({
+            url: src,
+            height: rect.height,
+            width: rect.width
+          });
         }
       }
     }
@@ -82,18 +86,22 @@ module.exports = function (config) {
     });
   }
 
-  const promises = images.map((image) => {
+  const promises = images.map(async (image) => {
     if (image.url.indexOf('data:image') === 0) {
-      return image.url;
+      return image;
     }
 
-    return toDataUrl(image.url);
+    image.dataUrl = await toDataUrl(image.url);
+
+    delete image.url;
+
+    return image;
   });
 
   return Promise.all(promises)
     .then((result) => {
       return {
-        images: result.map((r) => ({ data: r })),
+        images: result,
         name,
         price
       };

@@ -11,9 +11,6 @@ const isUrlRegExp = /^https?:\/\//;
 
 async function launchUrl(url, callback, args) {
   const browser = await puppeteer.launch({
-    // See: https://github.com/GoogleChrome/puppeteer/issues/2511#issuecomment-387811302
-    ignoreDefaultArgs: true,
-
     headless: true,
     args: [
       '--ignore-certificate-errors',
@@ -26,6 +23,9 @@ async function launchUrl(url, callback, args) {
   });
 
   const page = await browser.newPage();
+
+  // See: https://intoli.com/blog/making-chrome-headless-undetectable/
+  await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36');
 
   if (process.env.NODE_ENV === 'development') {
     page.on('console', (message) => {
