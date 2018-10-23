@@ -1,4 +1,4 @@
-const scraperProductConfigs = require('giftdibs-product-page-scraper/src/config');
+const scraperProductConfigs = require('giftdibs-product-page-scraper/src/product-config');
 const urlParser = require('url');
 
 const ignoredResources = require('./ignored-resources');
