@@ -21,4 +21,6 @@ const getConfig = (url) => {
   return Object.assign({}, defaultConfig, config);
 };
 
-module.exports = getConfig;
+module.exports = {
+  getConfig
+};

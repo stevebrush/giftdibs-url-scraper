@@ -1,10 +1,9 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
+const scrapeProductPage = require('giftdibs-product-page-scraper/src/scrape-product-page');
 
 const { Product } = require('../database/models/product');
 const { URLScraperNotFoundError } = require('../shared/errors');
-
-const scrapeUrlDomCallback = require('./scrape-product-dom-callback');
 
 const router = express.Router();
 const isUrlRegExp = /^https?:\/\//;
@@ -78,7 +77,7 @@ async function scrapeProductUrl(url, config) {
   let product = products[0];
 
   if (!product) {
-    const details = await launchUrl(url, scrapeUrlDomCallback, config);
+    const details = await launchUrl(url, scrapeProductPage, config);
     details.url = url;
 
     if (details.images.length > 0 || details.price > 0) {
@@ -99,8 +98,8 @@ router.route('/products').get((req, res, next) => {
     return;
   }
 
-  const scraperConfigUtil = require('../utils/config');
-  const productConfig = scraperConfigUtil.getConfig(url);
+  const getConfig = require('../utils/config');
+  const productConfig = getConfig(url);
 
   scrapeProductUrl(url, productConfig)
     .then((product) => {
