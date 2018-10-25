@@ -1,27 +1,40 @@
-const { getEnvironment } = require('./shared/environment');
+const env = require('./shared/environment');
+env.applyEnvironment();
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-
-getEnvironment();
+const puppeteer = require('puppeteer');
 
 const db = require('./database');
 db.connect();
 
 const app = express();
-app.set('port', process.env.PORT);
+app.set('port', env.get('PORT'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-const whitelist = process.env.ALLOW_ORIGINS.split(',');
+const allowedOrigins = env.get('ALLOW_ORIGINS');
+if (!allowedOrigins) {
+  console.error('Please provide allowed origins.');
+  process.exit(1);
+}
+
+const whitelist = allowedOrigins.split(',');
 
 app.use(cors({
-  methods: 'POST,GET',
+  methods: 'GET,POST,OPTIONS',
+  optionsSuccessStatus: 200,
   origin: (origin, callback) => {
-    if (whitelist.indexOf(origin) !== -1) {
+    // No origin means "same origin":
+    // See: https://github.com/expressjs/cors/issues/118
+    if (origin === undefined || whitelist.indexOf(origin) !== -1) {
+      console.log(`The domain ${origin} is allowed access.`);
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(
+        new Error(`The domain ${origin} is not allowed access.`)
+      );
     }
   }
 }));

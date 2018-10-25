@@ -3,6 +3,7 @@ const puppeteer = require('puppeteer');
 const scrapeProductPage = require('giftdibs-product-page-scraper/src/scrape-product-page');
 
 const { Product } = require('../database/models/product');
+const env = require('../shared/environment');
 const { URLScraperNotFoundError } = require('../shared/errors');
 
 const router = express.Router();
@@ -11,14 +12,7 @@ const isUrlRegExp = /^https?:\/\//;
 async function launchUrl(url, callback, args) {
   const browser = await puppeteer.launch({
     headless: true,
-    args: [
-      '--ignore-certificate-errors',
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-web-security',
-      '--disable-gpu',
-      '--hide-scrollbars'
-    ]
+    args: ['--no-sandbox']
   });
 
   const page = await browser.newPage();
@@ -26,7 +20,7 @@ async function launchUrl(url, callback, args) {
   // See: https://intoli.com/blog/making-chrome-headless-undetectable/
   await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36');
 
-  if (process.env.NODE_ENV === 'development') {
+  if (env.get('NODE_ENV') === 'development') {
     page.on('console', (message) => {
       console.log('PAGE LOG:', message.text());
     });
@@ -50,7 +44,7 @@ async function launchUrl(url, callback, args) {
     }
 
     if (doAbort) {
-      if (process.env.NODE_ENV === 'development') {
+      if (env.get('NODE_ENV') === 'development') {
         console.log('IGNORE RESOURCE:', requestUrl);
       }
       request.abort();

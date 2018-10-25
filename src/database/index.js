@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
+const env = require('../shared/environment');
 
 mongoose.Promise = Promise;
 
-const databaseUri = process.env.DATABASE_URI;
+const databaseUri = env.get('DATABASE_URI');
 
 module.exports = {
   connect: () => {
