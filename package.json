@@ -35,7 +35,7 @@
     "express": "4.16.4",
     "firebase-admin": "6.1.0",
     "firebase-functions": "2.1.0",
-    "giftdibs-product-page-scraper": "github:giftdibs/product-page-scraper",
+    "giftdibs-product-page-scraper": "^1.0.0-alpha.0",
     "mongoose": "5.1.7",
     "puppeteer": "1.9.0",
     "winston": "3.1.0"
