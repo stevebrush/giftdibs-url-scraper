@@ -12,7 +12,14 @@ const isUrlRegExp = /^https?:\/\//;
 async function launchUrl(url, callback, args) {
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--no-sandbox']
+    args: [
+      '--ignore-certificate-errors',
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-web-security',
+      '--disable-gpu',
+      '--hide-scrollbars'
+    ]
   });
 
   const page = await browser.newPage();
@@ -47,6 +54,7 @@ async function launchUrl(url, callback, args) {
       if (env.get('NODE_ENV') === 'development') {
         console.log('IGNORE RESOURCE:', requestUrl);
       }
+
       request.abort();
     } else {
       request.continue();

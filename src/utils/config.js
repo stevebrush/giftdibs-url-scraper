@@ -4,9 +4,9 @@ const urlParser = require('url');
 const ignoredResources = require('./ignored-resources');
 
 const defaultConfig = {
-  nameSelector: 'title',
-  priceSelector: null,
-  imagesSelector: 'img',
+  nameSelectors: ['title'],
+  priceSelectors: null,
+  imagesSelectors: ['img'],
   ignoredResources: []
 };
 
