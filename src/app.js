@@ -4,10 +4,6 @@ env.applyEnvironment();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const puppeteer = require('puppeteer');
-
-const db = require('./database');
-db.connect();
 
 const app = express();
 app.set('port', env.get('PORT'));

@@ -1,12 +1,13 @@
 const scraperProductConfigs = require('giftdibs-product-page-scraper/src/product-config');
+
 const urlParser = require('url');
 
 const ignoredResources = require('./ignored-resources');
 
 const defaultConfig = {
-  nameSelectors: ['title'],
-  priceSelectors: null,
-  imagesSelectors: ['img'],
+  nameSelector: 'title',
+  priceSelector: null,
+  imageSelector: 'img',
   ignoredResources: []
 };
 
@@ -21,4 +22,6 @@ const getConfig = (url) => {
   return Object.assign({}, defaultConfig, config);
 };
 
-module.exports = getConfig;
+module.exports = {
+  getConfig
+};

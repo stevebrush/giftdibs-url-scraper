@@ -2,7 +2,6 @@ const express = require('express');
 const puppeteer = require('puppeteer');
 const scrapeProductPage = require('giftdibs-product-page-scraper/src/scrape-product-page');
 
-const { Product } = require('../database/models/product');
 const env = require('../shared/environment');
 const { URLScraperNotFoundError } = require('../shared/errors');
 
@@ -11,21 +10,23 @@ const isUrlRegExp = /^https?:\/\//;
 
 async function launchUrl(url, callback, args) {
   const browser = await puppeteer.launch({
-    headless: true,
     args: [
-      '--ignore-certificate-errors',
-      '--no-sandbox',
+      '--disable-gpu',
+      '--disable-dev-shm-usage',
       '--disable-setuid-sandbox',
       '--disable-web-security',
-      '--disable-gpu',
-      '--hide-scrollbars'
+      '--hide-scrollbars',
+      '--ignore-certificate-errors',
+      '--no-first-run',
+      '--no-sandbox',
+      '--no-zygote'
     ]
   });
 
   const page = await browser.newPage();
 
   // See: https://intoli.com/blog/making-chrome-headless-undetectable/
-  await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36');
+  // await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36');
 
   if (env.get('NODE_ENV') === 'development') {
     page.on('console', (message) => {
@@ -71,24 +72,11 @@ async function launchUrl(url, callback, args) {
 }
 
 async function scrapeProductUrl(url, config) {
-  const products = await Product.find({ url })
-    .limit(1)
-    .select('images name price url')
-    .lean();
+  const details = await launchUrl(url, scrapeProductPage, config);
 
-  let product = products[0];
+  details.url = url;
 
-  if (!product) {
-    const details = await launchUrl(url, scrapeProductPage, config);
-    details.url = url;
-
-    if (details.images.length > 0 || details.price > 0) {
-      const doc = new Product(details);
-      product = await doc.save();
-    }
-  }
-
-  return product;
+  return details;
 }
 
 router.route('/products').get((req, res, next) => {
@@ -100,7 +88,7 @@ router.route('/products').get((req, res, next) => {
     return;
   }
 
-  const getConfig = require('../utils/config');
+  const { getConfig } = require('../utils/config');
   const productConfig = getConfig(url);
 
   scrapeProductUrl(url, productConfig)
