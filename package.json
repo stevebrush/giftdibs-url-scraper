@@ -36,7 +36,7 @@
     "firebase-admin": "6.1.0",
     "firebase-functions": "2.1.0",
     "giftdibs-product-page-scraper": "giftdibs/product-page-scraper",
-    "puppeteer": "1.9.0",
+    "puppeteer": "1.10.0",
     "winston": "3.1.0"
   },
   "devDependencies": {
