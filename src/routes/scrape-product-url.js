@@ -35,6 +35,7 @@ async function launchUrl(url, callback, args) {
   }
 
   await page.setRequestInterception(true);
+  await page.setBypassCSP(true);
 
   page.on('request', (request) => {
     const requestUrl = request.url();
@@ -52,12 +53,16 @@ async function launchUrl(url, callback, args) {
     }
 
     if (doAbort) {
-      if (env.get('NODE_ENV') === 'development') {
-        console.log('IGNORE RESOURCE:', requestUrl);
-      }
+      // if (env.get('NODE_ENV') === 'development') {
+      //   console.log('IGNORE RESOURCE:', requestUrl);
+      // }
 
       request.abort();
     } else {
+      if (env.get('NODE_ENV') === 'development') {
+        console.log('ALLOW:', requestUrl);
+      }
+
       request.continue();
     }
   });
