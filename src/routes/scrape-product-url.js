@@ -10,6 +10,7 @@ const isUrlRegExp = /^https?:\/\//;
 
 async function launchUrl(url, callback, args) {
   const browser = await puppeteer.launch({
+    headless: true,
     args: [
       '--disable-gpu',
       '--disable-dev-shm-usage',
@@ -26,7 +27,10 @@ async function launchUrl(url, callback, args) {
   const page = await browser.newPage();
 
   // See: https://intoli.com/blog/making-chrome-headless-undetectable/
-  await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36');
+  // Use Safari, so that some sites won't serve webp images (like Target.com).
+  await page.setUserAgent(
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.1 Safari/605.1.15'
+  );
 
   if (env.get('NODE_ENV') === 'development') {
     page.on('console', (message) => {
