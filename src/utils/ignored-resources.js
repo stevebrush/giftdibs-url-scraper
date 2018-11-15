@@ -1,4 +1,9 @@
 module.exports = {
+  'ae.com': [
+    'siteintercept.qualtrics.com',
+    'snapchat.com',
+    'match.adsrvr.org'
+  ],
   'amazon.com': [
     'completion.amazon.com',
     '.amazon-adsystem.com',
@@ -89,6 +94,17 @@ module.exports = {
     'mediaplex.com',
     'dotomi.com'
   ],
+  'lowes.com': [
+    'scontent.webcollage.net',
+    'cdn.krxd.net',
+    'static.ecorebates.com',
+    'pixeltrack.eyeviewads.com',
+    'lptag.liveperson.net',
+    'smetrics.lowes.com',
+    'fdz.flashtalking.com',
+    'lowes.netmng.com',
+    'lowes.tt.omtrdc.net'
+  ],
   'newegg.com': [
     'bidswitch.net',
     'criteo.net',
@@ -115,6 +131,9 @@ module.exports = {
     'redsky.target.com',
     'gstatic.com',
     'webcollage.net'
+  ],
+  'urbanoutfitters.com': [
+    'px.dynamicyield.com'
   ],
   'walmart.com': [
     'beacon.walmart.com',
