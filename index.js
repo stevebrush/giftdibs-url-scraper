@@ -10,7 +10,7 @@ app.listen(app.get('port'), () => {
 const functions = require('firebase-functions');
 exports.app = functions
   .runWith({
-    memory: '1GB',
-    timeoutSeconds: 60
+    memory: '2GB',
+    timeoutSeconds: 300
   })
   .https.onRequest(app);

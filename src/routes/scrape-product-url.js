@@ -1,5 +1,4 @@
 const express = require('express');
-const puppeteer = require('puppeteer');
 const scrapeProductPage = require('giftdibs-product-page-scraper/src/scrape-product-page');
 
 const env = require('../shared/environment');
@@ -8,8 +7,28 @@ const { URLScraperNotFoundError } = require('../shared/errors');
 const router = express.Router();
 const isUrlRegExp = /^https?:\/\//;
 
-async function launchUrl(url, callback, args) {
-  const browser = await puppeteer.launch({
+function getPuppeteer() {
+  if (env.get('NODE_ENV') !== 'development') {
+    return require('puppeteer-core');
+  }
+
+  return require('puppeteer');
+}
+
+async function getPuppeteerOptions() {
+  if (env.get('NODE_ENV') !== 'development') {
+    // Use chrome-aws-lambda in production; it's much faster.
+    // See: https://github.com/GoogleChrome/puppeteer/issues/3120#issuecomment-450575911
+    const chromium = require('chrome-aws-lambda');
+    return {
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless
+    };
+  }
+
+  return {
     headless: true,
     args: [
       '--disable-gpu',
@@ -22,7 +41,13 @@ async function launchUrl(url, callback, args) {
       '--no-sandbox',
       '--no-zygote'
     ]
-  });
+  };
+}
+
+async function launchUrl(url, callback, args) {
+  const options = await getPuppeteerOptions();
+
+  const browser = await getPuppeteer().launch(options);
 
   const page = await browser.newPage();
 
