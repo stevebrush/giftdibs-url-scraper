@@ -2,13 +2,14 @@ const express = require('express');
 const scrapeProductPage = require('giftdibs-product-page-scraper/src/scrape-product-page');
 
 const env = require('../shared/environment');
+const NODE_ENV = env.get('NODE_ENV');
 const { URLScraperNotFoundError } = require('../shared/errors');
 
 const router = express.Router();
 const isUrlRegExp = /^https?:\/\//;
 
 function getPuppeteer() {
-  if (env.get('NODE_ENV') !== 'development') {
+  if (NODE_ENV !== 'development') {
     return require('puppeteer-core');
   }
 
@@ -16,7 +17,7 @@ function getPuppeteer() {
 }
 
 async function getPuppeteerOptions() {
-  if (env.get('NODE_ENV') !== 'development') {
+  if (NODE_ENV !== 'development') {
     // Use chrome-aws-lambda in production; it's much faster.
     // See: https://github.com/GoogleChrome/puppeteer/issues/3120#issuecomment-450575911
     const chromium = require('chrome-aws-lambda');
@@ -31,15 +32,16 @@ async function getPuppeteerOptions() {
   return {
     headless: true,
     args: [
-      '--disable-gpu',
-      '--disable-dev-shm-usage',
-      '--disable-setuid-sandbox',
-      '--disable-web-security',
-      '--hide-scrollbars',
-      '--ignore-certificate-errors',
-      '--no-first-run',
-      '--no-sandbox',
-      '--no-zygote'
+      '--disable-gpu=true',
+      '--disable-accelerated-2d-canvas=true',
+      '--disable-dev-shm-usage=true',
+      '--disable-setuid-sandbox=true',
+      '--disable-web-security=true',
+      '--hide-scrollbars=true',
+      '--ignore-certificate-errors=true',
+      '--no-first-run=true',
+      '--no-sandbox=true',
+      '--no-zygote=true'
     ]
   };
 }
@@ -57,7 +59,7 @@ async function launchUrl(url, callback, args) {
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.1 Safari/605.1.15'
   );
 
-  if (env.get('NODE_ENV') === 'development') {
+  if (NODE_ENV === 'development') {
     page.on('console', (message) => {
       console.log('PAGE LOG:', message.text());
     });
@@ -68,29 +70,59 @@ async function launchUrl(url, callback, args) {
 
   page.on('request', (request) => {
     const requestUrl = request.url();
-    let doAbort = false;
+    const resourceType = request.resourceType();
 
-    // Ignore loading images.
-    if (args.ignoredResources) {
-      const found = args.ignoredResources.find((resource) => {
-        return (requestUrl.indexOf(resource) > -1);
-      });
+    const blockedResourceTypes = [
+      'media',
+      'font',
+      'texttrack',
+      'object',
+      'beacon',
+      'csp_report'
+    ];
 
-      if (found) {
-        doAbort = true;
-      }
-    }
+    const ignoredResources = [
+      'adservice.google.com',
+      'addthis.com',
+      'advertising.com',
+      'akamaihd.net',
+      'bazaarvoice.com',
+      'bing.com',
+      'bluekai.com',
+      'boldchat',
+      'bounceexchange',
+      'clicktale',
+      'doubleclick.net',
+      'facebook.com',
+      'facebook.net',
+      'go-mpulse.net',
+      'googleadservices.com',
+      'googletagmanager.com',
+      'googletagservices.com',
+      'google-analytics.com',
+      'google.com/adsense',
+      'mixpanel',
+      'optimizely.com',
+      'pinterest.com',
+      'snapchat',
+      'twitter.com'
+    ];
+
+    const doAbort = (
+      blockedResourceTypes.indexOf(resourceType) !== -1 ||
+      ignoredResources.find(r => requestUrl.indexOf(r) !== -1)
+    );
 
     if (doAbort) {
-      // if (env.get('NODE_ENV') === 'development') {
+      // if (NODE_ENV === 'development') {
       //   console.log('IGNORE RESOURCE:', requestUrl);
       // }
 
       request.abort();
     } else {
-      if (env.get('NODE_ENV') === 'development') {
-        console.log('ALLOW:', requestUrl);
-      }
+      // if (NODE_ENV === 'development') {
+      //   console.log('ALLOW:', requestUrl);
+      // }
 
       request.continue();
     }
