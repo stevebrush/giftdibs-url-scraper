@@ -55,15 +55,20 @@ async function launchUrl(url, callback, args) {
 
   // See: https://intoli.com/blog/making-chrome-headless-undetectable/
   // Use Safari, so that some sites won't serve webp images (like Target.com).
-  await page.setUserAgent(
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.1 Safari/605.1.15'
-  );
+  // await page.setUserAgent(
+  //   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.0.1 Safari/605.1.15'
+  // );
 
   if (NODE_ENV === 'development') {
     page.on('console', (message) => {
       console.log('PAGE LOG:', message.text());
     });
   }
+
+  page.setViewport({
+    width: 1600,
+    height: 1200
+  });
 
   await page.setRequestInterception(true);
   await page.setBypassCSP(true);
@@ -82,30 +87,30 @@ async function launchUrl(url, callback, args) {
     ];
 
     const ignoredResources = [
-      'adservice.google.com',
-      'addthis.com',
-      'advertising.com',
-      'akamaihd.net',
-      'bazaarvoice.com',
-      'bing.com',
-      'bluekai.com',
+      'adservice.google',
+      'addthis',
+      'advertising',
+      'akamaihd',
+      'bazaarvoice',
+      'bing',
+      'bluekai',
       'boldchat',
       'bounceexchange',
       'clicktale',
-      'doubleclick.net',
-      'facebook.com',
-      'facebook.net',
-      'go-mpulse.net',
-      'googleadservices.com',
-      'googletagmanager.com',
-      'googletagservices.com',
-      'google-analytics.com',
-      'google.com/adsense',
+      'doubleclick',
+      'facebook',
+      'facebook',
+      'go-mpulse',
+      'googleadservices',
+      'googletagmanager',
+      'googletagservices',
+      'google-analytics',
+      'adsense',
       'mixpanel',
-      'optimizely.com',
-      'pinterest.com',
+      'optimizely',
+      'pinterest',
       'snapchat',
-      'twitter.com'
+      'twitter'
     ];
 
     const doAbort = (
@@ -114,21 +119,24 @@ async function launchUrl(url, callback, args) {
     );
 
     if (doAbort) {
-      // if (NODE_ENV === 'development') {
-      //   console.log('IGNORE RESOURCE:', requestUrl);
-      // }
+      if (NODE_ENV === 'development') {
+        console.log('IGNORE RESOURCE:', requestUrl);
+      }
 
       request.abort();
-    } else {
-      // if (NODE_ENV === 'development') {
-      //   console.log('ALLOW:', requestUrl);
-      // }
-
-      request.continue();
+      return;
     }
+
+    if (NODE_ENV === 'development') {
+      console.log('ALLOW:', requestUrl);
+    }
+
+    request.continue();
   });
 
-  await page.goto(url);
+  await page.goto(url, {
+    waitUntil: 'load'
+  });
 
   const result = await page.evaluate(callback, args);
 
